@@ -5,10 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, r2_score, confusion_matrix, mean_absolute_error
 
 def get_season(month):
-    if month in [12, 1, 2]: return 0
-    elif month in [3, 4, 5]: return 1
-    elif month in [6, 7, 8, 9]: return 3
-    elif month in [10, 11]: return 2
+    if month in [12, 1, 2]: return 0      # Winter (Low Risk)
+    elif month in [3, 4, 5]: return 1     # Summer
+    elif month in [6, 7, 8, 9]: return 3  # Monsoon (High Risk)
+    elif month in [10, 11]: return 2      # Post-Monsoon
     return 0
 
 def main():
@@ -30,10 +30,8 @@ def main():
         if sex_candidates: df.rename(columns={sex_candidates[0]: 'Sex'}, inplace=True)
         else: df['Sex'] = 'Male'
 
-    # --- 1. DATA CLEANING (Fixes the Glitch) ---
+    # --- 1. DATA CLEANING ---
     df['Age'] = pd.to_numeric(df['Age'], errors='coerce').fillna(30)
-    
-    # FIX: Normalize Sex to Title Case (Male, Female) and remove spaces
     df['Sex'] = df['Sex'].astype(str).str.title().str.strip()
     
     # Dates & Season
@@ -60,7 +58,8 @@ def main():
         'Platelet (cells/cu.mm)', 'Haemoglobin (gm/Dl)', 
         'Red Blood Cell Count (millions/cu.mm)', 'Hematocrit (Packed Cell Volume) (%)',
         'Age', 'Sex_Code', 
-        'Has_Fever', 'Has_Headache', 'Has_Pain', 'Has_Vomit'
+        'Has_Fever', 'Has_Headache', 'Has_Pain', 'Has_Vomit',
+        'Season_Risk'  # <--- NEW: Now determining risk based on season!
     ]
     
     X_clf = df[clf_features].fillna(0)
@@ -70,11 +69,6 @@ def main():
     classifier = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
     classifier.fit(X_train_c, y_train_c)
     
-    # Calculate Risk Metrics
-    y_pred_c = classifier.predict(X_test_c)
-    clf_acc = accuracy_score(y_test_c, y_pred_c)
-    cm = confusion_matrix(y_test_c, y_pred_c) # The Confusion Matrix
-
     # --- 3. FORECAST ENGINE TRAINING ---
     print("Training Forecast Model...")
     df['Day2_Platelets'] = df['Platelet (cells/cu.mm)']
@@ -88,7 +82,8 @@ def main():
         'Day1_Platelets', 'Day2_Platelets', 'Delta_Day1_Day2',
         'Haemoglobin (gm/Dl)', 'Red Blood Cell Count (millions/cu.mm)', 
         'Hematocrit (Packed Cell Volume) (%)', 'Age', 'Sex_Code',                              
-        'Has_Fever', 'Has_Vomit', 'Has_Pain', 'Has_Headache'
+        'Has_Fever', 'Has_Vomit', 'Has_Pain', 'Has_Headache',
+        'Season_Risk' # <--- NEW: Now forecasting based on season!
     ]
     
     X_reg = df[reg_features].fillna(0)
@@ -98,29 +93,8 @@ def main():
     regressor = GradientBoostingRegressor(n_estimators=200, learning_rate=0.1, max_depth=4, random_state=42)
     regressor.fit(X_train_r, y_train_r)
     
-    # Calculate Forecast Metrics
-    y_pred_r = regressor.predict(X_test_r)
-    reg_r2 = r2_score(y_test_r, y_pred_r)
-    reg_mae = mean_absolute_error(y_test_r, y_pred_r)
-
-    # --- 4. PACKING STATS ---
-    performance_data = {
-        'total_patients': len(df),
-        'risk_accuracy': clf_acc,
-        'forecast_r2': reg_r2,
-        'forecast_mae': reg_mae,
-        'risk_counts': df['Dengue_Label'].value_counts().to_dict(),
-        'sex_counts': df['Sex'].value_counts().to_dict(), # Now Cleaned!
-        'clf_importance': dict(zip(clf_features, classifier.feature_importances_)),
-        'reg_importance': dict(zip(reg_features, regressor.feature_importances_)),
-        # Advanced Metrics Data
-        'confusion_matrix': cm,
-        'y_test_reg': y_test_r.values[:50], # Sample 50 points for scatter plot
-        'y_pred_reg': y_pred_r[:50]
-    }
-
-    print("✅ Training Complete. Metrics Calculated.")
-    return classifier, regressor, clf_features, reg_features, performance_data, df
+    # --- 4. RETURN EVERYTHING ---
+    return classifier, regressor, clf_features, reg_features
 
 if __name__ == "__main__":
     main()
