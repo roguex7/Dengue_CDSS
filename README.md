@@ -32,9 +32,9 @@ The system evaluates **Platelets, Hematocrit, Haemoglobin, Age, and Symptoms**. 
 
 * **Evidence of Logic:** Below, the system correctly identifies a stable patient despite low-ish platelets because their Hematocrit and Hemoglobin are within safe ranges.
 
-<img width="1920" height="1332" alt="image" src="https://github.com/user-attachments/assets/b89b0cf9-8b85-4729-9a45-5d3c7d71e62e" />
-<img width="1920" height="1582" alt="image" src="https://github.com/user-attachments/assets/15865fd0-9bee-4801-8a0d-f880e8bc7576" />
-<img width="1920" height="1582" alt="image" src="https://github.com/user-attachments/assets/d5c3ed88-5229-4da2-aa67-01d0dcc8fbdb" />
+<img width="1920" height="1582" alt="image" src="https://github.com/user-attachments/assets/f51dfe54-69cf-4bcc-8931-848e85bf8d05" />
+<img width="1920" height="1582" alt="image" src="https://github.com/user-attachments/assets/5fb5937e-8b30-4207-b088-497b20c42f10" />
+
 
 
 ### 3. Trajectory Forecasting (Prognosis)
