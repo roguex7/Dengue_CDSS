@@ -6,6 +6,8 @@
 ## 📖 Executive Summary
 
 Dengue management is a race against time. The critical factor often isn't just the current platelet count, but the **velocity of decay**. A patient with 120,000 platelets dropping fast is in more danger than a stable patient at 80,000.
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://denguecdss.streamlit.app/)
+
 
 This CDSS (Clinical Decision Support System) solves this by:
 
@@ -136,7 +138,21 @@ pip install -r requirements.txt
 streamlit run app.py
 
 ```
+## 🚀 Deployment & CI/CD Pipeline
 
+This project is fully deployed as a live web application using **Streamlit Community Cloud**, leveraging a continuous deployment pipeline linked directly to this GitHub repository.
+
+### ☁️ Architecture
+* **Infrastructure:** Serverless Linux environment hosted on Streamlit Cloud.
+* **Continuous Deployment:** The application enables **"Hot Reloading."** Any code change pushed to the `main` branch automatically triggers a rebuild of the cloud environment, ensuring the live tool is always up-to-date with the latest algorithms.
+* **Dependency Management:** The cloud builder automatically provisions the environment using `requirements.txt` to install Scikit-Learn, Pandas, and custom logic libraries.
+
+### 🔗 Live Demo
+Access the fully functional CDSS here:
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://denguecdss.streamlit.app/)
+
+*(Note: The application performs a "cold boot" if inactive for a while. Please allow 10-20 seconds for the AI models to load into memory upon first access.)*
 ---
 
 ## 👤 Author
