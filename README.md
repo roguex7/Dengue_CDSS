@@ -36,8 +36,9 @@ The system evaluates **Platelets, Hematocrit, Haemoglobin, Age, and Symptoms**. 
 
 * **Evidence of Logic:** Below, the system correctly identifies a stable patient despite low-ish platelets because their Hematocrit and Hemoglobin are within safe ranges.
 
-<img width="1920" height="1582" alt="image" src="https://github.com/user-attachments/assets/f51dfe54-69cf-4bcc-8931-848e85bf8d05" />
-<img width="1920" height="1582" alt="image" src="https://github.com/user-attachments/assets/5fb5937e-8b30-4207-b088-497b20c42f10" />
+<img width="1920" height="1538" alt="image" src="https://github.com/user-attachments/assets/de9dac39-3ffa-434c-b742-e4e1599459ed" />
+<img width="1920" height="1538" alt="image" src="https://github.com/user-attachments/assets/a62d8f62-97a0-4cce-9f5d-da3773617464" />
+
 
 
 
@@ -47,8 +48,9 @@ Using **Momentum Physics**, the AI calculates the *velocity* of change between D
 
 * **Visualization:** Custom Matplotlib graphs with **floating annotations** ensure doctors can read values without gridline interference.
 
-<img width="1920" height="2087" alt="image" src="https://github.com/user-attachments/assets/0e8667d3-4b87-41e3-8825-ab4565b161c9" />
-<img width="1920" height="2087" alt="image" src="https://github.com/user-attachments/assets/38bebeea-aea4-4532-b94b-609909e50279" />
+<img width="1920" height="2086" alt="image" src="https://github.com/user-attachments/assets/a420632d-b844-4996-b6d2-e0e8a7504c47" />
+<img width="1920" height="2086" alt="image" src="https://github.com/user-attachments/assets/051bfd1d-b97e-40b2-88a3-17d216a86521" />
+
 
 ---
 ## 🧠 Dual-Engine AI Architecture
@@ -88,6 +90,20 @@ The system prevents "fat-finger" errors (typos) by enforcing biological limits o
 * **Proof 2 (RBC Count):** Flagging RBC counts that exceed human limits, preventing skew in the prediction model.
   If a user types 41.5 for RBC count, that isn't just "high"—it is biologically impossible (human blood turns into solid sludge around 12-14). Allowing it would just confuse the AI model.
 <img width="601" height="168" alt="image" src="https://github.com/user-attachments/assets/19b3768d-fa06-4e53-bcb4-e7aadd1675d4" />
+
+---
+## 📅 Seasonal Intelligence: Context-Aware Prediction
+
+Dengue outbreaks are not random; they follow distinct temporal patterns. A platelet drop in **July (Monsoon)** carries a higher statistical probability of being Dengue-related than the same drop in **January**.
+
+To capture this, the model implements a **Temporal Risk Weighting** engine:
+
+1.  **Dynamic Season Detection:** The system parses the **Date of Test** (selected by the doctor) to classify the timeframe into risk zones:
+    * **High Risk:** Monsoon (June - September)
+    * **Moderate Risk:** Post-Monsoon / Summer
+    * **Low Risk:** Winter
+2.  **Logic Integration:** This `Season_Risk` score is fed dynamically into both the **Random Forest** and **Gradient Boosting** models.
+    * *Result:* The AI becomes "hyper-vigilant" during monsoon months, adjusting its sensitivity based on the specific time of year, mirroring real-world epidemiological trends.
 
 ---
 ## ⚙️ The "Dirty Truth" of Data Processing (ETL Pipeline)
