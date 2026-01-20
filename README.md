@@ -113,7 +113,7 @@ You might ask: *"Why train an AI? Why not just write code that says `if platelet
 ### Step 1: Clone & Setup
 
 ```bash
-git clone https://github.com/roguex7/dengue-cdss-ai.git
+git clone https://github.com/roguex7/Dengue_CDSS.git
 cd dengue-cdss-ai
 
 ```
