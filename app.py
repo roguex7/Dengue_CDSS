@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime 
 import train_model
 
 # --- 1. CONFIGURATION ---
@@ -23,53 +24,37 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. LOAD MODELS (ROBUST) ---
+# --- 2. LOAD MODELS ---
 @st.cache_resource
 def load_ai_engine():
     try:
-        # We fetch everything, but we ignore the stats (_) since we hid that menu
-        # This keeps compatibility with your advanced train_model.py
         results = train_model.main()
-        
-        # Unpack safely (Grab first 4 items: clf, reg, cols, cols)
-        clf = results[0]
-        reg = results[1]
-        c_cols = results[2]
-        r_cols = results[3]
-        
-        return clf, reg, c_cols, r_cols
+        return results[0], results[1], results[2], results[3]
     except Exception as e:
         return None, None, None, None
 
-# Initialize Session State
-if 'active_page' not in st.session_state: st.session_state.active_page = 'risk'
-def set_page_risk(): st.session_state.active_page = 'risk'
-def set_page_forecast(): st.session_state.active_page = 'forecast'
+# --- 3. SEASONAL LOGIC (UPDATED) ---
+def get_season_score(selected_date):
+    month = selected_date.month
+    if month in [12, 1, 2]: return 0      # Winter
+    elif month in [3, 4, 5]: return 1     # Summer
+    elif month in [6, 7, 8, 9]: return 3  # Monsoon (High Risk)
+    elif month in [10, 11]: return 2      # Post-Monsoon
+    return 0
 
-# --- HELPER FUNCTION (INPUTS) ---
+# --- 4. INPUT HELPER ---
 def render_patient_inputs(key_suffix):
     st.markdown("#### ⚙️ Patient Context & Symptoms")
     c1, c2, c3 = st.columns(3)
     with c1:
         sex = st.selectbox("Sex", ["Male", "Female"], key=f"sex{key_suffix}")
         age = st.slider("Age", 0, 100, 25, key=f"age{key_suffix}")
-    
     with c2:
-        # Haemoglobin: 0.1 (Fatal) to 25.0 (World Record High)
-        # Prevents negative numbers or impossible highs like 50
         hb = st.number_input("Haemoglobin (gm/Dl)", 0.1, 25.0, 13.0, step=0.1, key=f"hb{key_suffix}")
-        
-        # RBC Count: 0.1 to 14.0
-        # Normal is ~5. 14 is the biological limit before blood stops flowing.
-        # This BLOCKS 41.50 (Typos) but allows severe polycythemia (9.0)
         rbc = st.number_input("RBC Count", 0.1, 14.0, 4.5, step=0.1, key=f"rbc{key_suffix}")
-
     with c3:
-        # Hematocrit: 5% to 80%
-        # < 5% is incompatible with life. > 80% is extremely rare sludge.
-        # This keeps inputs realistic.
         hct = st.number_input("Hematocrit (%)", 5.0, 80.0, 40.0, step=0.5, key=f"hct{key_suffix}")
-
+    
     st.markdown("**Symptoms Observed:**")
     s1, s2, s3, s4 = st.columns(4)
     fever = s1.checkbox("Fever", value=True, key=f"fever{key_suffix}")
@@ -79,44 +64,54 @@ def render_patient_inputs(key_suffix):
     
     return {
         'Sex_Code': 1 if sex == "Male" else 0,
-        'Haemoglobin (gm/Dl)': hb,
-        'Hematocrit (Packed Cell Volume) (%)': hct,
-        'Red Blood Cell Count (millions/cu.mm)': rbc,
-        'Age': age,
-        'Has_Fever': int(fever),
-        'Has_Headache': int(head),
-        'Has_Pain': int(pain),
-        'Has_Vomit': int(vomit)
+        'Haemoglobin (gm/Dl)': hb, 'Hematocrit (Packed Cell Volume) (%)': hct,
+        'Red Blood Cell Count (millions/cu.mm)': rbc, 'Age': age,
+        'Has_Fever': int(fever), 'Has_Headache': int(head),
+        'Has_Pain': int(pain), 'Has_Vomit': int(vomit)
     }
 
-# --- 3. MAIN APP ---
+# --- 5. MAIN APP ---
+if 'active_page' not in st.session_state: st.session_state.active_page = 'risk'
+def set_page_risk(): st.session_state.active_page = 'risk'
+def set_page_forecast(): st.session_state.active_page = 'forecast'
+
 classifier, regressor, clf_features, reg_features = load_ai_engine()
 
 if classifier is None:
-    st.error("❌ Critical Error: Models failed to load. Run 'python train_model.py' first.")
+    st.error("❌ Critical Error: Models failed to load.")
     st.stop()
 
 st.title("🦟 Dengue CDSS: AI Prediction Engine")
 
-# --- NAVIGATION (Cleaned Up) ---
+# Navigation
 c_nav1, c_nav2, c_spacer = st.columns([1, 1, 3], gap="small")
-with c_nav1:
-    st.button("🚨 Risk Analyzer", type="primary" if st.session_state.active_page == 'risk' else "secondary", use_container_width=True, on_click=set_page_risk)
-with c_nav2:
-    st.button("📈 Forecast Engine", type="primary" if st.session_state.active_page == 'forecast' else "secondary", use_container_width=True, on_click=set_page_forecast)
+with c_nav1: st.button("🚨 Risk Analyzer", type="primary" if st.session_state.active_page == 'risk' else "secondary", use_container_width=True, on_click=set_page_risk)
+with c_nav2: st.button("📈 Forecast Engine", type="primary" if st.session_state.active_page == 'forecast' else "secondary", use_container_width=True, on_click=set_page_forecast)
 
 st.divider()
 
-# >>> VIEW 1: RISK ANALYZER <<<
+# VIEW 1: RISK
 if st.session_state.active_page == 'risk':
     st.subheader("🚨 Immediate Risk Assessment")
-    st.info("Enter details to assess the **Current Severity** of the infection.")
-    plt_risk = st.number_input("Current Platelet Count", 0, 1000000, 85000, step=1000)
+    
+    # NEW: Date Picker
+    c_date, c_plt = st.columns([1, 2])
+    with c_date:
+        test_date = st.date_input("Date of Test", datetime.date.today())
+        season_score = get_season_score(test_date)
+        season_name = ["Winter (Low)", "Summer (Mod)", "Post-Monsoon (Mod)", "Monsoon (High)"][season_score if season_score < 3 else 3]
+        st.caption(f"Season Risk: **{season_name}**")
+        
+    with c_plt:
+        plt_risk = st.number_input("Current Platelet Count", 0, 1000000, 85000, step=1000)
+
     risk_inputs = render_patient_inputs("_risk")
     
     if st.button("Analyze Risk Now", type="primary", use_container_width=True):
         input_df = pd.DataFrame([risk_inputs])
         input_df['Platelet (cells/cu.mm)'] = plt_risk
+        input_df['Season_Risk'] = season_score 
+        
         for col in clf_features:
             if col not in input_df.columns: input_df[col] = 0
         input_df = input_df[clf_features]
@@ -126,19 +121,24 @@ if st.session_state.active_page == 'risk':
         
         st.divider()
         if prediction == 1:
-            st.error(f"### ⚠️ HIGH RISK DETECTED")
-            st.markdown(f"**Confidence:** {prob*100:.1f}% | **Action:** Immediate Admission.")
+            st.error(f"### ⚠️ HIGH RISK DETECTED\n**Confidence:** {prob*100:.1f}%")
         else:
-            st.success(f"### ✅ LOW RISK / STABLE")
-            st.markdown(f"**Confidence:** {(1-prob)*100:.1f}% | **Action:** Monitor Outpatient.")
+            st.success(f"### ✅ LOW RISK / STABLE\n**Confidence:** {(1-prob)*100:.1f}%")
 
-# >>> VIEW 2: FORECAST ENGINE <<<
+# VIEW 2: FORECAST
 elif st.session_state.active_page == 'forecast':
     st.subheader("📈 24-Hour Trajectory Forecast")
-    st.info("Predicts **Day-3 (Tomorrow)** based on momentum.")
-    c_hist1, c_hist2 = st.columns(2)
+    
+    # NEW: Date Picker Integration
+    c_hist1, c_hist2, c_date = st.columns(3)
     with c_hist1: day0 = st.number_input("🗓️ Day-0 (Yesterday)", 0, 1000000, 150000, step=1000)
     with c_hist2: day1 = st.number_input("🗓️ Day-1 (Today)", 0, 1000000, 110000, step=1000)
+    with c_date:
+        test_date = st.date_input("Date of Test", datetime.date.today(), key="date_fc")
+        season_score = get_season_score(test_date)
+        season_name = ["Winter (Low)", "Summer (Mod)", "Post-Monsoon (Mod)", "Monsoon (High)"][season_score if season_score < 3 else 3]
+        st.info(f"Season: **{season_name}**")
+
     velocity = day1 - day0
     st.caption(f"Trend Velocity: {velocity} / day")
     st.divider()
@@ -149,6 +149,8 @@ elif st.session_state.active_page == 'forecast':
         input_df['Day1_Platelets'] = day0
         input_df['Day2_Platelets'] = day1
         input_df['Delta_Day1_Day2'] = velocity
+        input_df['Season_Risk'] = season_score 
+        
         for col in reg_features:
             if col not in input_df.columns: input_df[col] = 0
         input_df = input_df[reg_features]
