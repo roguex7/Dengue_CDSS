@@ -3969,15 +3969,16 @@ else:
         _active_n  = sum(1 for m in _mod_status if m['status'] == 'active')
         _partial_n = sum(1 for m in _mod_status if m['status'] == 'partial')
         _total_n   = len(_mod_status)
-
+        _partial_span = (f"&nbsp;·&nbsp;<span style='color:#f39c12; font-weight:700;'>{_partial_n} partial</span>" if _partial_n else "")
+        _inactive_n = _total_n - _active_n - _partial_n
         st.markdown(
             f"<div class='preview-banner'>"
             f"<h4>Report Entry Preview</h4>"
             f"<p>Verify all data below. When ready, click <b>RUN ANALYSIS</b> in the sidebar."
             f"&nbsp;&nbsp;"
             f"<span style='color:#2ecc71; font-weight:700;'>{_active_n} modules active</span>"
-            f"{'&nbsp;·&nbsp;<span style=\"color:#f39c12; font-weight:700;\">'+str(_partial_n)+' partial</span>' if _partial_n else ''}"
-            f"&nbsp;·&nbsp;<span style='color:#8b92a8;'>{_total_n - _active_n - _partial_n} inactive</span>"
+            + _partial_span +
+            f"&nbsp;·&nbsp;<span style='color:#8b92a8;'>{_inactive_n} inactive</span>"
             f"</p></div>",
             unsafe_allow_html=True)
 
