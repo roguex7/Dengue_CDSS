@@ -1,0 +1,24 @@
+# ── Core Framework ──────────────────────────────────────────
+streamlit
+
+# ── Data & ML ───────────────────────────────────────────────
+pandas
+numpy
+scikit-learn
+
+# ── Visualisation ────────────────────────────────────────────
+matplotlib
+plotly
+
+# ── OCR & Document Processing ────────────────────────────────
+pytesseract
+opencv-python-headless
+Pillow
+pdf2image
+pypdf
+
+# ── ML Explainability ────────────────────────────────────────
+shap
+
+# ── PDF Report Generation ────────────────────────────────────
+fpdf2
