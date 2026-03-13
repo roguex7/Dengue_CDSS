@@ -319,7 +319,19 @@ div[data-testid="stSelectbox"]  > label { font-size: .875rem; font-weight: 500; 
 # ══════════════════════════════════════════════════════════
 @st.cache_resource
 def load_ai_engine():
+    """
+    Load AI engine — permanent fast-start strategy:
+      1. Try loading pre-trained .pkl files baked into the Docker image  (<0.5s)
+      2. Fall back to training from scratch only if pkl files are missing
+         (first local run, or non-Docker environment)
+    This eliminates 45-90s cold-start training on every Render spin-up.
+    """
     try:
+        # ── Fast path: pre-trained models (Docker / Render production) ──────
+        result = train_model.load_pretrained()
+        if result is not None:
+            return result[0], result[1], result[2], result[3]
+        # ── Fallback: train from scratch (local dev / first run) ─────────────
         r = train_model.main()
         return r[0], r[1], r[2], r[3]
     except Exception:

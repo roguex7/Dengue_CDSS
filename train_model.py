@@ -25,6 +25,8 @@ Returns: classifier, regressor, clf_features, reg_features
          (4 values — matches app.py load_ai_engine r[0..3])
 """
 
+import os
+import joblib
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
@@ -33,6 +35,14 @@ from sklearn.metrics import (accuracy_score, r2_score, confusion_matrix,
                               mean_absolute_error, roc_auc_score)
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+
+# ── Model artefact paths ──────────────────────────────────────────────────────
+#  Serialised models live in models/ sub-directory — consistently located
+#  whether running locally, in Docker, or on Render.
+MODELS_DIR    = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+CLF_PATH      = os.path.join(MODELS_DIR, "classifier.pkl")
+REG_PATH      = os.path.join(MODELS_DIR, "regressor.pkl")
+FEATURES_PATH = os.path.join(MODELS_DIR, "features.pkl")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -394,16 +404,10 @@ def main():
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
     auc         = roc_auc_score(y_te_c, y_prob_c)
 
-    cv_auc = cross_val_score(
-        classifier, X_clf, y_clf,
-        cv=StratifiedKFold(5, shuffle=True, random_state=42),
-        scoring='roc_auc', n_jobs=-1).mean()
-
     print(f"       Accuracy    : {accuracy_score(y_te_c, y_pred_c)*100:.2f}%")
     print(f"       Sensitivity : {sensitivity*100:.2f}%")
     print(f"       Specificity : {specificity*100:.2f}%")
     print(f"       AUC (test)  : {auc:.4f}")
-    print(f"       AUC (5-CV)  : {cv_auc:.4f}")
     print(f"       Confusion   : TP={tp}  FP={fp}  TN={tn}  FN={fn}")
 
     importances = sorted(
@@ -482,9 +486,33 @@ def main():
     # ── [5/6] Print validated TRAIN_STATS ───────────────────────────────────
     _print_train_stats(df)
 
-    print("\n[6/6]  ✅  Training complete.\n")
+    # ── [6/6] Serialise models to disk ──────────────────────────────────────
+    print("\n[6/6]  Saving trained models to disk...")
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    joblib.dump(classifier, CLF_PATH,      compress=3)
+    joblib.dump(regressor,  REG_PATH,      compress=3)
+    joblib.dump({'clf_features': clf_features,
+                 'reg_features': reg_features}, FEATURES_PATH, compress=3)
+    print(f"       classifier  → {CLF_PATH}")
+    print(f"       regressor   → {REG_PATH}")
+    print(f"       features    → {FEATURES_PATH}")
+    print("\n  ✅  Training complete — models baked and ready.\n")
     print("=" * 65)
     return classifier, regressor, clf_features, reg_features
+
+
+def load_pretrained():
+    """
+    Load pre-trained models from disk.
+    Returns (classifier, regressor, clf_features, reg_features) or None if missing.
+    Called by app.py load_ai_engine() on every cold start — sub-second load time.
+    """
+    if not all(os.path.exists(p) for p in [CLF_PATH, REG_PATH, FEATURES_PATH]):
+        return None
+    clf      = joblib.load(CLF_PATH)
+    reg      = joblib.load(REG_PATH)
+    features = joblib.load(FEATURES_PATH)
+    return clf, reg, features['clf_features'], features['reg_features']
 
 
 if __name__ == "__main__":

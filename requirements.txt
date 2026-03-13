@@ -1,24 +1,25 @@
-# ── Core Framework ──────────────────────────────────────────
+# ── Core Framework ───────────────────────────────────────────
 streamlit
 
-# ── Data & ML ───────────────────────────────────────────────
+# ── Data & ML ────────────────────────────────────────────────
 pandas
 numpy
 scikit-learn
+joblib
 
-# ── Visualisation ────────────────────────────────────────────
+# ── Visualisation ─────────────────────────────────────────────
 matplotlib
 plotly
 
-# ── OCR & Document Processing ────────────────────────────────
+# ── OCR & Document Processing ─────────────────────────────────
 pytesseract
 opencv-python-headless
 Pillow
 pdf2image
 pypdf
 
-# ── ML Explainability ────────────────────────────────────────
+# ── ML Explainability ─────────────────────────────────────────
 shap
 
-# ── PDF Report Generation ────────────────────────────────────
+# ── PDF Report Generation ─────────────────────────────────────
 fpdf2
