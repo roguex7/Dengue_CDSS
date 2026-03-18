@@ -1,6 +1,4 @@
 """
-generate_graphs.py  —  Dengue CDSS  |  Professional Graph Generation  v2.0
-═══════════════════════════════════════════════════════════════════════════════
 Generates 15 publication-quality graphs for the Dengue CDSS technical document.
 
 Prerequisites:
@@ -147,8 +145,8 @@ def _save(fig, filename, tight=True):
 #  DATA PREPARATION
 #  IDENTICAL to train_model.py — single source of truth for preprocessing.
 # ═══════════════════════════════════════════════════════════════════════════
+# Physiological bounds (mirrors PHYS_BOUNDS in train_model.py)
 
-# Physiological bounds (mirrors PHYS_BOUNDS in train_model.py v3.1)
 PHYS_BOUNDS = {
     "platelets": ("Platelet (cells/cu.mm)",                   1000,  900000, 120000),
     "hb":        ("Haemoglobin (gm/Dl)",                       2.0,    22.0,   12.5),

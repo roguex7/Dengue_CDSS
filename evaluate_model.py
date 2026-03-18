@@ -1,6 +1,4 @@
 """
-evaluate_model.py  —  Dengue CDSS  |  Model Evaluation & Validation
-═══════════════════════════════════════════════════════════════════════════════
 Runs a full evaluation of the trained classifier and regressor.
 Outputs:
   • Classification report  (precision / recall / F1 per class)

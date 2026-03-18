@@ -1,6 +1,4 @@
 """
-train_model.py  —  Dengue CDSS  |  ML Training Pipeline  v3.1
-═══════════════════════════════════════════════════════════════════════════════
 Trains two models that power app.py:
   • classifier  — RandomForestClassifier   → risk probability (0–1)
   • regressor   — GradientBoostingRegressor → 24-h platelet forecast
@@ -52,7 +50,7 @@ FEATURES_PATH = os.path.join(MODELS_DIR, "features.pkl")
 #
 #  Format: key → (csv_column_name, clip_lo, clip_hi, fillna_default)
 #
-#  ── RBC FIX (v3.1) ───────────────────────────────────────────────────────
+#  ── RBC FIX ───────────────────────────────────────────────────────
 #  The CSV stores RBC in millions/cu.mm (normal: 3.5 – 6.5).
 #  Values > 10 are unit errors (cells/uL stored instead of M/uL).
 #  clip(1.0, 10.0) rejects all garbage while keeping every real value.

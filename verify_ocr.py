@@ -1,4 +1,4 @@
-# save as verify_ocr.py and run: python verify_ocr.py
+#save as verify_ocr.py and run: python verify_ocr.py
 try:
     import pytesseract
     print("✅ pytesseract installed:", pytesseract.get_tesseract_version())

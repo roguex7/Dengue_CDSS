@@ -1,6 +1,4 @@
 """
-test_suite.py  —  Dengue CDSS  |  ML Pipeline Integration Tests
-═══════════════════════════════════════════════════════════════════════════════
 Tests every layer of the ML pipeline:
   1. Training smoke test  — models load, clf_features / reg_features returned
   2. Feature contract     — clf_features matches app.py risk_input keys exactly
@@ -42,8 +40,6 @@ def _run(name, fn):
 
 
 # ════════════════════════════════════════════════════════════════════════════
-#  Keys that app.py's risk_input sends to the classifier (lines 4058-4071
-#  in app.py + Shock_Index / Pulse_Pressure added below).
 #  This list is the ground truth for the contract test.
 # ════════════════════════════════════════════════════════════════════════════
 APP_RISK_INPUT_KEYS = {

@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════
-#  Dengue CDSS — Dockerfile  v2.0
+#  Dengue CDSS — Dockerfile 
 #  Strategy: bake pre-trained models INTO the image at build time.
 #
 #  Cold-start time:
