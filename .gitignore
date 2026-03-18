@@ -8,4 +8,6 @@ __pycache__/
 Screenshot*
 screencapture*
 models/
-*.pkl
+*.pkl*.xlsx
+Dengue Case Registry.xlsx
+*.xlsx
